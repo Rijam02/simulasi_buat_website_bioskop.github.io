@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Bioskop XXI</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+    <!-- HALAMAN UTAMA -->
+    <section id="halamanUtama" class="page active">
+        <h1 class="judul">SELAMAT DATANG DI BIOSKOP XXI</h1>
+
+        <div class="top-actions">
+            <button class="btn-green" onclick="tampilData()">LIHAT DATA PELANGGAN</button>
+            <button class="btn-red" onclick="resetAll()">RESET SEMUA</button>
+        </div>
+
+        <div class="film-container">
+            <div class="film-card" onclick="pilihFilm('inside')">
+                <img src="https://upload.wikimedia.org/wikipedia/id/f/f7/Inside_Out_2_poster.jpg" class="poster">
+                <div class="judul-film">INSIDE OUT 2</div>
+            </div>
+
+            <div class="film-card" onclick="pilihFilm('komang')">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTexkM-mW7o0V4MaHw19CqZeWGjbRcmznnGyg&s" class="poster">
+                <div class="judul-film">KOMANG</div>
+            </div>
+
+            <div class="film-card" onclick="pilihFilm('pengabdi')">
+                <img src="data:image/jpeg;base64,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" class="poster">
+                <div class="judul-film">PENGABDI SETAN 2</div>
+            </div>
+
+            <div class="film-card" onclick="pilihFilm('minecraft')">
+                <img src="https://upload.wikimedia.org/wikipedia/id/f/f5/Poster_A_Minecraft_Movie.jpeg" class="poster">
+                <div class="judul-film">MINECRAFT MOVIE</div>
+            </div>
+        </div>
+
+        <!-- DATA PELANGGAN (DITAMPILKAN DI HALAMAN UTAMA) -->
+        <h2 class="subjudul">Riwayat Pembeli</h2>
+        <div id="dataContainer" class="data-list">
+            <!-- card akan di-render di sini oleh JS -->
+        </div>
+    </section>
+
+    <!-- HALAMAN DETAIL FILM -->
+    <section id="halamanDetail" class="page">
+        <button class="btn-back" onclick="kembali('halamanUtama')">← Kembali</button>
+
+        <h2 id="judulFilm"></h2>
+        <img id="posterFilm" class="poster-detail" alt="poster">
+        <h3 class="judul-sinopsis">SINOPSIS FILM</h3>
+        <p id="sinopsisText" class="sinopsis"></p>
+        <h3 id="hargaFilm" class="harga"></h3>
+
+        <button class="btn-yellow" onclick="kePilihKursi()">BELI TIKET</button>
+    </section>
+
+    <!-- HALAMAN PILIH WAKTU & KURSI -->
+    <section id="halamanKursi" class="page">
+        <button class="btn-back" onclick="kembali('halamanDetail')">← Kembali</button>
+
+        <h2>PILIH WAKTU TONTON</h2>
+        <div class="waktu-container">
+            <button class="btn-waktu" onclick="pilihWaktu(this,'09.00')">09.00</button>
+            <button class="btn-waktu" onclick="pilihWaktu(this,'11.00')">11.00</button>
+            <button class="btn-waktu" onclick="pilihWaktu(this,'13.00')">13.00</button>
+            <button class="btn-waktu" onclick="pilihWaktu(this,'15.00')">15.00</button>
+            <button class="btn-waktu" onclick="pilihWaktu(this,'18.00')">18.00</button>
+            <button class="btn-waktu" onclick="pilihWaktu(this,'20.00')">20.00</button>
+        </div>
+
+        <h2>PILIH KURSI</h2>
+        <div id="kursiContainer" class="kursi-grid"></div>
+
+        <h3>Jumlah Tiket:</h3>
+        <input type="number" id="jumlahTiket" min="1" value="1" class="input">
+
+        <button class="btn-yellow" onclick="lanjutPembayaran()">LANJUT</button>
+    </section>
+
+    <!-- HALAMAN PEMBAYARAN -->
+    <section id="halamanPembayaran" class="page">
+        <button class="btn-back" onclick="kembali('halamanKursi')">← Kembali</button>
+
+        <h2>MENU PEMBAYARAN</h2>
+
+        <div class="box">
+            <label>Nama Pelanggan</label>
+            <input id="namaPelanggan" class="input">
+        </div>
+
+        <div class="box">
+            <label>Total Harga</label>
+            <span id="totalHarga"></span>
+        </div>
+
+        <div class="box">
+            <label>Masukkan Uang</label>
+            <input id="bayarInput" class="input" onkeypress="tekanEnter(event)">
+        </div>
+
+        <div class="box">
+            <label>Kembalian</label>
+            <input id="kembalianInput" class="input" disabled>
+        </div>
+
+        <button class="btn-green" onclick="simpanData()">SELESAI & SIMPAN</button>
+    </section>
+
+<script src="script.js"></script>
+</body>
+</html>
