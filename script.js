@@ -13,7 +13,7 @@ const sinopsis = {
   minecraft: "empat orang yang tidak cocok satu sama lain—Garrett, Henry, Natalie, dan Dawn—terjebak di dunia kubus bernama Overworld setelah melewati portal misterius. Untuk kembali ke dunia asal, mereka harus menguasai dunia baru ini dan bekerja sama, dibantu oleh ahli pembangun bernama Steve, sambil menghadapi berbagai tantangan dan makhluk berbahaya seperti Piglins dan Zombies. "
 };
 const hargaFilm = { inside:55000, komang:50000, pengabdi:60000, minecraft:55000 };
-const diskonFilm = { inside:0.05, komang:0.10, pengabdi:0.07, minecraft:0.15 };
+const diskonFilm = { inside:0.05, komang:0.10, pengabdi:0.10, minecraft:0.15 };
 
 /* STORAGE */
 let kursiTerisi = JSON.parse(localStorage.getItem('kursiData')) || { inside:[], komang:[], pengabdi:[], minecraft:[] };
@@ -22,10 +22,10 @@ let pelanggan = JSON.parse(localStorage.getItem('pelanggan')) || [];
 /* STATE */
 let filmDipilih = '';
 let waktuPilih = '';
-let seatsSelected = []; // array untuk multi-seat
+let seatsSelected = [];
 let totalBayar = 0;
 
-/* UTILS */
+/* JENIS UANG */
 function rupiah(n){ return 'Rp ' + n.toLocaleString('id-ID'); }
 
 /* PILIH FILM */
@@ -37,7 +37,7 @@ function pilihFilm(key){
   // poster ambil src dari card
   const cardImg = document.querySelector(`[onclick="pilihFilm('${key}')"] img`);
   if(cardImg) document.getElementById('posterFilm').src = cardImg.src;
-  // sinopsis & harga (tanpa tunjukkan diskon)
+  // sinopsis & harga 
   document.getElementById('sinopsisText').innerText = sinopsis[key];
   document.getElementById('hargaFilm').innerText = `Harga: ${rupiah(hargaFilm[key])}`;
   // reset waktu & kursiSelected
@@ -62,7 +62,7 @@ function kePilihKursi(){
 
 /* GENERATE KURSI */
 function buatKursi(){
-  seatsSelected = []; // kosongkan seleksi saat masuk halaman kursi
+  seatsSelected = []; 
   const container = document.getElementById('kursiContainer');
   container.innerHTML = '';
   const allSeats = ['A1','A2','A3','A4','A5','B1','B2','B3','B4','B5','C1','C2','C3','C4','C5'];
@@ -86,7 +86,7 @@ function buatKursi(){
           div.classList.remove('pilih');
         } else {
           if(seatsSelected.length >= jumlah){
-            alert(`Kamu sudah memilih ${jumlah} kursi. Batalkan dulu salah satu jika ingin ganti.`);
+            alert(`Kamu sudah mencapai batas pilihan kursi, dengan memilih ${jumlah} kursi.`);
             return;
           }
           seatsSelected.push(code);
@@ -99,7 +99,7 @@ function buatKursi(){
   });
 }
 
-/* LANJUT PEMBAYARAN -> validasi jumlah kursi sama dengan tiket & waktu dipilih */
+/* LANJUT PEMBAYARAN  */
 function lanjutPembayaran(){
   const jumlah = Math.max(1, parseInt(document.getElementById('jumlahTiket').value) || 1);
 
@@ -138,12 +138,13 @@ function simpanData(){
   kursiTerisi[filmDipilih] = kursiTerisi[filmDipilih].concat(seatsSelected);
   localStorage.setItem('kursiData', JSON.stringify(kursiTerisi));
 
-  // simpan setiap pembelian sebagai satu record dengan array seats
+  // simpan setiap pembelian sebagai satu record dengan array seats dan jumlah tiket
   pelanggan.push({
     nama,
     film: filmDipilih,
     waktu: waktuPilih,
     kursi: [...seatsSelected],
+    jumlahTiket: seatsSelected.length,  // Tambahan field jumlah tiket
     total: totalBayar,
     diskon: Math.round((diskonFilm[filmDipilih] || 0) * 100)
   });
@@ -161,38 +162,90 @@ function simpanData(){
 }
 
 /* RENDER DATA PELANGGAN di halaman utama */
-function renderDataContainer(){
+   const namaFilmLengkap = {
+     "inside": "INSIDE OUT 2",
+     "pengabdi": "PENGABDI SETAN 2",
+     "komang": "KOMANG",
+     "minecraft": "MINECRAFT MOVIE"
+   };
+   
+function renderDataContainer() {
   const container = document.getElementById('dataContainer');
-  pelanggan = JSON.parse(localStorage.getItem('pelanggan')) || []; // sync
+  const pelanggan = JSON.parse(localStorage.getItem('pelanggan')) || [];
   container.innerHTML = '';
 
-  if(pelanggan.length === 0){
+  if (pelanggan.length === 0) {
     container.innerHTML = '<div class="data-card">Belum ada pembeli.</div>';
     return;
   }
 
-  pelanggan.forEach((p, idx)=>{
+  pelanggan.forEach((p) => {
+    const hargaAkhir = p.total * (1 - (p.diskon || 0) / 100);
+
     const card = document.createElement('div');
     card.className = 'data-card';
+    card.style.padding = '12px 16px';
+    card.style.border = '4px solid #070707ff';
+    card.style.borderRadius = '6px';
+    card.style.marginBottom = '12px';
+    card.style.background = '#ddef53ff';
+    card.style.fontFamily = 'Arial, sans-serif';
+    card.style.fontSize = '14px';
+    card.style.color = '#080808ff';
+
     card.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div><b>${p.nama}</b> — <span style="color:#555">${p.film.toUpperCase()}</span></div>
-        <div><small>${p.waktu}</small></div>
-      </div>
-      <div class="data-row" style="margin-top:8px;">
-        <div><b>Kursi:</b> ${p.kursi.join(', ')}</div>
-        <div><b>Total:</b> ${rupiah(p.total)}</div>
-        <div><b>Diskon:</b> ${p.diskon}%</div>
-      </div>
+      <h2 style="margin-top: 0; margin-bottom: 12px; font-weight: bold; font-size: 20px; color: #222;">
+        Data Pelanggan
+      </h2>
+      <table style="border-collapse: collapse; width: 100%; max-width: 400px;">
+        <tbody>
+          <tr>
+            <td style="width: 130px; font-weight: bold;">Nama Pelanggan</td>
+            <td style="text-align: center; width: 15px;">:</td>
+            <td style="text-align: left;">${p.nama}</td>
+          </tr>
+          <tr>
+            <td style="font-weight: bold;">Nama Film</td>
+            <td style="text-align: center;">:</td>
+            <td style="text-align: left;">
+              ${namaFilmLengkap[p.film.toLowerCase()] || p.film}
+            </td>
+          </tr>
+          <tr>
+            <td style="font-weight: bold;">Waktu</td>
+            <td style="text-align: center;">:</td>
+            <td style="text-align: left;">${p.waktu}</td>
+          </tr>
+          <tr>
+            <td style="font-weight: bold;">Jumlah Tiket</td>
+            <td style="text-align: center;">:</td>
+            <td style="text-align: left;">${p.jumlahTiket}</td>
+          </tr>
+          <tr>
+            <td style="font-weight: bold;">Kursi</td>
+            <td style="text-align: center;">:</td>
+            <td style="text-align: left;">${p.kursi.join(', ')}</td>
+          </tr>
+          <tr>
+            <td style="font-weight: bold;">Harga Film</td>
+            <td style="text-align: center;">:</td>
+            <td style="text-align: left;">${rupiah(p.total)}</td>
+          </tr>
+          <tr>
+            <td style="font-weight: bold;">Diskon</td>
+            <td style="text-align: center;">:</td>
+            <td style="text-align: left;">${p.diskon}%</td>
+          </tr>
+          <tr>
+            <td style="font-weight: bold;">Harga Akhir</td>
+            <td style="text-align: center;">:</td>
+            <td style="text-align: left;">${rupiah(hargaAkhir)}</td>
+          </tr>
+        </tbody>
+      </table>
     `;
     container.appendChild(card);
   });
-}
-
-/* Tampil data (dipanggil saat klik LIHAT DATA) */
-function tampilData(){
-  renderDataContainer();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 /* RESET semua data (confirm) */
@@ -217,3 +270,178 @@ function resetAll(){
   kursiTerisi = JSON.parse(localStorage.getItem('kursiData')) || { inside:[], komang:[], pengabdi:[], minecraft:[] };
   renderDataContainer();
 })();
+
+/* CARI DATA PELANGGAN */
+
+function tampilData() {
+    navigate('halamanCari');
+    document.getElementById('hasilCari').innerHTML = '';
+    document.getElementById('inputCariNama').value = '';
+}
+
+function cariNamaPelanggan() {
+    const nama = (document.getElementById('inputCariNama').value || '').trim().toLowerCase();
+    const hasilEl = document.getElementById('hasilCari');
+    hasilEl.innerHTML = '';
+
+    const data = JSON.parse(localStorage.getItem('pelanggan')) || [];
+
+    if (!nama) {
+        hasilEl.innerHTML = '<div class="data-card">Masukkan nama dulu!</div>';
+        return;
+    }
+
+    const cocok = data.filter(p => (p.nama || '').toLowerCase().includes(nama));
+
+    if (cocok.length === 0) {
+        hasilEl.innerHTML = '<div class="data-card">Data tidak ditemukan.</div>';
+        return;
+    }
+
+    cocok.forEach(p => {
+        const hargaAkhir = p.total * (1 - (p.diskon || 0) / 100);
+
+        const card = document.createElement('div');
+        card.className = 'data-card';
+
+        card.innerHTML = `
+            <h2 style="margin-top:0; margin-bottom:12px; font-weight:bold; font-size:20px; color: #222;">
+            Data Pelanggan</h2>
+            <table style="border-collapse: collapse; width:100%; max-width:400px;">
+            <tbody>
+
+            <tr>
+                <td style="width:130px; font-weight:bold;">Nama Pelanggan</td>
+                <td style="text-align:center;">:</td>
+                <td>${p.nama}</td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:bold;">Nama Film</td>
+                <td style="text-align:center;">:</td>
+                <td>${namaFilmLengkap[p.film.toLowerCase()]}</td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:bold;">Waktu</td>
+                <td style="text-align:center;">:</td>
+                <td>${p.waktu}</td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:bold;">Jumlah Tiket</td>
+                <td style="text-align:center;">:</td>
+                <td>${p.jumlahTiket}</td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:bold;">Kursi</td>
+                <td style="text-align:center;">:</td>
+                <td>${p.kursi.join(', ')}</td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:bold;">Harga Film</td>
+                <td style="text-align:center;">:</td>
+                <td>${rupiah(p.total)}</td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:bold;">Diskon</td>
+                <td style="text-align:center;">:</td>
+                <td>${p.diskon}%</td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:bold;">Harga Akhir</td>
+                <td style="text-align:center;">:</td>
+                <td>${rupiah(hargaAkhir)}</td>
+            </tr>
+
+            </tbody>
+            </table>
+        `;
+
+        hasilEl.appendChild(card); 
+    });
+}
+
+function urutkanPelanggan() {
+    const hasilEl = document.getElementById('hasilCari');
+    hasilEl.innerHTML = '';
+
+    let data = JSON.parse(localStorage.getItem('pelanggan')) || [];
+    data.sort((a, b) => (a.nama || '').localeCompare(b.nama || ''));
+
+    if (data.length === 0) {
+        hasilEl.innerHTML = '<div class="data-card">Belum ada data pelanggan.</div>';
+        return;
+    }
+
+    data.forEach(p => {
+        const hargaAkhir = p.total * (1 - (p.diskon || 0) / 100);
+
+        const card = document.createElement('div');
+        card.className = 'data-card';
+
+        card.innerHTML = `
+            <h2 style="margin-top:0; margin-bottom:12px; font-weight:bold; font-size:20px; color: #222;">
+            Data Pelanggan</h2>
+            <table style="border-collapse: collapse; width:100%; max-width:400px;">
+            <tbody>
+
+            <tr>
+                <td style="width:130px; font-weight:bold;">Nama Pelanggan</td>
+                <td style="text-align:center;">:</td>
+                <td>${p.nama}</td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:bold;">Nama Film</td>
+                <td style="text-align:center;">:</td>
+                <td>${namaFilmLengkap[p.film.toLowerCase()]}</td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:bold;">Waktu</td>
+                <td style="text-align:center;">:</td>
+                <td>${p.waktu}</td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:bold;">Jumlah Tiket</td>
+                <td style="text-align:center;">:</td>
+                <td>${p.jumlahTiket}</td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:bold;">Kursi</td>
+                <td style="text-align:center;">:</td>
+                <td>${p.kursi.join(', ')}</td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:bold;">Harga Film</td>
+                <td style="text-align:center;">:</td>
+                <td>${rupiah(p.total)}</td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:bold;">Diskon</td>
+                <td style="text-align:center;">:</td>
+                <td>${p.diskon}%</td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:bold;">Harga Akhir</td>
+                <td style="text-align:center;">:</td>
+                <td>${rupiah(hargaAkhir)}</td>
+            </tr>
+
+            </tbody>
+            </table>
+        `;
+
+        hasilEl.appendChild(card); 
+    });
+}
